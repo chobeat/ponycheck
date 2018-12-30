@@ -1,5 +1,5 @@
 use "random"
-
+use "collections"
 
 class Randomness
   """
@@ -243,10 +243,49 @@ class Randomness
 
 
 class GaussianRand is Random
+  """
+  A random number generator sampling values from a gaussian distribution.
+  It implements the Ziggurat algorithm. It uses the Pony's stdlib Rand to 
+  sample the values used for the Ziggurat algorithm.
+  """
    let _uniformRand : Rand
+   let _blockCount:USize = 128
+   let _preComputedXBaseRectangle:F64 = 3.442619855899
+   let _precomputedRectangleArea:F64 = 9.91256303526217e-3
+
+   // _precomputedRegionX[i] and _precomputedRegionY[i] describe the top-right position of rectangle nr. i
+   let _precomputedRegionX: Array[F64]
+   let _precomputedRegionY: Array[F64]
+
 
    fun ref next():U64=>
     0
+   fun ref _precomputeRegions()? =>
+      _precomputedRegionX(0)?=_preComputedXBaseRectangle
+      _precomputedRegionY(0)?= GaussianPDF.gaussianPDFDenormalized(_preComputedXBaseRectangle)
+      _precomputedRegionX(1)?=_preComputedXBaseRectangle
+      _precomputedRegionY(1)?=_precomputedRegionY(0)?+(_precomputedRectangleArea/_precomputedRegionX(1)?)
+      for i in Range(2,_blockCount)
+        do 
+
+         _precomputedRegionX(i)? = 
+
+         _precomputedRegionY(i)? =_precomputedRegionY(i-1)?+(_precomputedRectangleArea/_precomputedRegionX(i)?)
+
+        end
+
+
 
    new ref create(seed1:U64=42,seed2:U64=0) =>
+
+      _precomputedRegionX = Array[F64](_blockCount+1)
+      _precomputedRegionY = Array[F64](_blockCount)
       _uniformRand=Rand(seed1,seed2)
+
+primitive GaussianPDF
+
+   fun gaussianPDFDenormalized(x:F64):F64=>
+      F64.e().pow(-((x*x)/2.0))
+
+   fun gaussianPDFDenormalizedInv(x:F64):F64=>
+      F64.e().pow(-((x*x)/2.0))

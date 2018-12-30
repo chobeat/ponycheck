@@ -52,4 +52,6 @@ actor Main is TestList
     test(RunnerAsyncCompleteMultiSucceedActionTest)
     test(RunnerAsyncMultiCompleteSucceedTest)
     test(RunnerAsyncMultiCompleteFailTest)
+    test(GaussianPDFTest)
+    test(GaussianPDFInvTest)
 
