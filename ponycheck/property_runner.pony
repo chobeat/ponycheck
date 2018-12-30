@@ -56,7 +56,7 @@ actor PropertyRunner[T]
     _params = params
     _logger = logger
     _notify = notify
-    _rnd = Randomness(_params.seed)
+    _rnd = Randomness.uniform(_params.seed)
     _gen = _prop1.gen()
 
 

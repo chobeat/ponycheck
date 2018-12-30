@@ -1,6 +1,7 @@
 use "random"
 
-class ref Randomness
+
+class Randomness
   """
   Source of randomness, providing methods for generatic uniformly distributed
   values from a given closed interval: [min, max]
@@ -11,8 +12,12 @@ class ref Randomness
   """
   let _random: Random
 
-  new ref create(seed1: U64 = 42, seed2: U64 = 0) =>
-    _random = Rand(seed1, seed2)
+
+  new ref uniform(seed1:U64=42,seed2:U64=0) =>
+      _random = Rand(seed1,seed2)
+
+  new ref gaussian(seed1:U64=42,seed2:U64=0) =>
+      _random = GaussianRand(seed1,seed2)
 
   fun ref u8(min: U8 = U8.min_value(), max: U8 = U8.max_value()): U8 =>
     """
@@ -237,3 +242,11 @@ class ref Randomness
     (_random.next() % 2) == 0
 
 
+class GaussianRand is Random
+   let _uniformRand : Rand
+
+   fun ref next():U64=>
+    0
+
+   new ref create(seed1:U64=42,seed2:U64=0) =>
+      _uniformRand=Rand(seed1,seed2)

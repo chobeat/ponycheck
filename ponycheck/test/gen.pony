@@ -10,9 +10,9 @@ class GenRndTest is UnitTest
 
   fun apply(h: TestHelper) ? =>
     let gen = Generators.u32()
-    let rnd1 = Randomness(0)
-    let rnd2 = Randomness(0)
-    let rnd3 = Randomness(1)
+    let rnd1 = Randomness.uniform(0)
+    let rnd2 = Randomness.uniform(0)
+    let rnd3 = Randomness.uniform(1)
     var same: U32 = 0
     for x in Range(0, 100) do
       let g1 = gen.generate_value(rnd1)?
@@ -37,7 +37,7 @@ class GenFilterTest is UnitTest
       (u: U32^): (U32^, Bool) =>
         (u, (u%2) == 0)
     })
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     for x in Range(0, 100) do
       let v = gen.generate_value(rnd)?
       h.assert_true((v%2) == 0)
@@ -52,7 +52,7 @@ class GenUnionTest is UnitTest
     produces shrinks of the same type than the generated value.
     """
     let gen = Generators.ascii().union[U8](Generators.u8())
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     for x in Range(0, 100) do
       let gs = gen.generate(rnd)?
       match gs
@@ -83,7 +83,7 @@ class GenFrequencyTest is UnitTest
       (0, Generators.unit[U8](42))
       (2, Generators.unit[U8](1))
     ])
-    let rnd: Randomness ref = Randomness(Time.millis())
+    let rnd: Randomness ref = Randomness.uniform(Time.millis())
 
     let generated = Array[U8](100)
     for i in Range(0, 100) do
@@ -96,7 +96,7 @@ class GenFrequencyTest is UnitTest
     let empty_gen = Generators.frequency[U8](Array[WeightedGenerator[U8]](0))
 
     h.assert_error({() ? =>
-      empty_gen.generate_value(Randomness(Time.millis()))?
+      empty_gen.generate_value(Randomness.uniform(Time.millis()))?
     })
 
 class GenFrequencySafeTest is UnitTest
@@ -112,7 +112,7 @@ class GenOneOfTest is UnitTest
 
   fun apply(h: TestHelper) =>
     let gen = Generators.one_of[U8]([as U8: 0; 1])
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     h.assert_true(
       Iter[U8^](gen.value_iter(rnd))
         .take(100)
@@ -121,7 +121,7 @@ class GenOneOfTest is UnitTest
     let empty_gen = Generators.one_of[U8](Array[U8](0))
 
     h.assert_error({() ? =>
-      empty_gen.generate_value(Randomness(Time.millis()))?
+      empty_gen.generate_value(Randomness.uniform(Time.millis()))?
     })
 
 
@@ -142,7 +142,7 @@ class SeqOfTest is UnitTest
         Generators.u8(),
         0,
         10)
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     h.assert_true(
       Iter[Array[U8]^](seq_gen.value_iter(rnd))
         .take(100)
@@ -181,7 +181,7 @@ class SetOfTest is UnitTest
       Generators.set_of[U8](
         Generators.u8(),
         1024)
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     for i in Range(0, 100) do
       let sample: Set[U8] = set_gen.generate_value(rnd)?
       h.assert_true(sample.size() <= 256, "something about U8 is not right")
@@ -193,7 +193,7 @@ class SetOfMaxTest is UnitTest
   fun apply(h: TestHelper) ? =>
     """
     """
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     for size in Range[USize](1, U8.max_value().usize()) do
       let set_gen =
         Generators.set_of[U8](
@@ -214,7 +214,7 @@ class SetOfEmptyTest is UnitTest
       Generators.set_of[U8](
         Generators.u8(),
         0)
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     for i in Range(0, 100) do
       let sample: Set[U8] = set_gen.generate_value(rnd)?
       h.assert_true(sample.size() == 0, "non-empty set created.")
@@ -229,7 +229,7 @@ class SetIsOfIdentityTest is UnitTest
       Generators.set_is_of[String](
         Generators.unit[String]("the highlander"),
         100)
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     let sample: SetIs[String] = set_is_gen_same.generate_value(rnd)?
     h.assert_true(sample.size() <= 1,
         "invalid SetIs instances generated: size " + sample.size().string())
@@ -249,7 +249,7 @@ class MapOfEmptyTest is UnitTest
           Generators.i64(-10, 10)
           ),
         0)
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     let sample = map_gen.generate_value(rnd)?
     h.assert_eq[USize](sample.size(), 0, "non-empty map created")
 
@@ -257,7 +257,7 @@ class MapOfMaxTest is UnitTest
   fun name(): String => "Gen/map_of_max"
 
   fun apply(h: TestHelper) ? =>
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
 
     for size in Range(1, U8.max_value().usize()) do
       let map_gen =
@@ -277,7 +277,7 @@ class MapOfIdentityTest is UnitTest
   fun name(): String => "Gen/map_of_identity"
 
   fun apply(h: TestHelper) ? =>
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     let map_gen =
       Generators.map_of[String, I64](
         Generators.zip2[String, I64](
@@ -306,7 +306,7 @@ class MapIsOfEmptyTest is UnitTest
           Generators.i64(-10, 10)
           ),
         0)
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     let sample = map_is_gen.generate_value(rnd)?
     h.assert_eq[USize](sample.size(), 0, "non-empty map created")
 
@@ -314,7 +314,7 @@ class MapIsOfMaxTest is UnitTest
   fun name(): String => "Gen/map_is_of_max"
 
   fun apply(h: TestHelper) ? =>
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
 
     for size in Range(1, U8.max_value().usize()) do
       let map_is_gen =
@@ -334,7 +334,7 @@ class MapIsOfIdentityTest is UnitTest
   fun name(): String => "Gen/map_is_of_identity"
 
   fun apply(h: TestHelper) ? =>
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     let map_gen =
       Generators.map_is_of[String, I64](
         Generators.zip2[String, I64](
@@ -348,7 +348,7 @@ class MapIsOfIdentityTest is UnitTest
 class ASCIIRangeTest is UnitTest
   fun name(): String => "Gen/ascii_range"
   fun apply(h: TestHelper) ? =>
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     let ascii_gen = Generators.ascii( where min=1, max=1, range=ASCIIAll)
 
     for i in Range[USize](0, 100) do
@@ -359,7 +359,7 @@ class ASCIIRangeTest is UnitTest
 class UTF32CodePointStringTest is UnitTest
   fun name(): String => "Gen/utf32_codepoint_string"
   fun apply(h: TestHelper) ? =>
-    let rnd = Randomness(Time.millis())
+    let rnd = Randomness.uniform(Time.millis())
     let string_gen = Generators.utf32_codepoint_string(
       Generators.u32(),
       50,
