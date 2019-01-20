@@ -247,6 +247,8 @@ class GaussianRand is Random
   A random number generator sampling values from a gaussian distribution.
   It implements the Ziggurat algorithm. It uses the Pony's stdlib Rand to 
   sample the values used for the Ziggurat algorithm.
+
+  Heavily inspired by: https://github.com/colgreen/Redzen/blob/master/Redzen/Numerics/Distributions/Double/ZigguratGaussian.cs
   """
    let _uniformRand : Rand
    let _blockCount:USize = 128
@@ -257,30 +259,48 @@ class GaussianRand is Random
    let _precomputedRegionX: Array[F64]
    let _precomputedRegionY: Array[F64]
 
+   let _segmentSectionInDistribution: Array[U64]
+   var _areaDividedByY0: F64
+
+
 
    fun ref next():U64=>
     0
+
+   fun ref _precomputeSegmentSections()? =>
+    for i in Range(1,_blockCount-1)
+    do 
+      _segmentSectionInDistribution(i)? = ((_precomputedRegionX(i+1)?/_precomputedRegionX(i)?)*U64.max_value().f64()).u64()
+    end
+
    fun ref _precomputeRegions()? =>
       _precomputedRegionX(0)?=_preComputedXBaseRectangle
       _precomputedRegionY(0)?= GaussianPDF.gaussianPDFDenormalized(_preComputedXBaseRectangle)
       _precomputedRegionX(1)?=_preComputedXBaseRectangle
       _precomputedRegionY(1)?=_precomputedRegionY(0)?+(_precomputedRectangleArea/_precomputedRegionX(1)?)
       for i in Range(2,_blockCount)
-        do 
+      do 
 
-         _precomputedRegionX(i)? = 
+         _precomputedRegionX(i)? = GaussianPDF.gaussianPDFDenormalizedInv(_precomputedRegionY(i-1)?)
 
          _precomputedRegionY(i)? =_precomputedRegionY(i-1)?+(_precomputedRectangleArea/_precomputedRegionX(i)?)
 
-        end
-
+      end
+      _precomputedRegionX(_blockCount)? = 0.0
 
 
    new ref create(seed1:U64=42,seed2:U64=0) =>
-
       _precomputedRegionX = Array[F64](_blockCount+1)
       _precomputedRegionY = Array[F64](_blockCount)
+      _segmentSectionInDistribution = Array[U64](_blockCount)
       _uniformRand=Rand(seed1,seed2)
+      _areaDividedByY0=0
+      try
+      _areaDividedByY0 = (_precomputedRectangleArea/_precomputedRegionY(0)?)
+      _precomputeRegions()?
+      _precomputeSegmentSections()?
+      //TODO: Properly handle errors in constructor
+      end
 
 primitive GaussianPDF
 
